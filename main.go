@@ -9,7 +9,7 @@ import (
 )
 
 // MinimalRequest represents the minimal required fields
-type MinimalRequest struct {
+type Request struct {
 	ActionType        string            `json:"actionType"`
 	Event             Event             `json:"event"`
 	AllowedOperations []Operation       `json:"allowedOperations,omitempty"`
@@ -62,7 +62,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req MinimalRequest
+	var req Request
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.Printf("Error decoding request: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)

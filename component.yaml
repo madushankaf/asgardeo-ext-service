@@ -1,0 +1,26 @@
+schemaVersion: 1.0
+name: ext-service-entitle-validation
+type: service
+
+# Optional: annotate what this component does
+annotations:
+  description: "PoC pre-issue access token extension service for Asgardeo"
+
+# Runtime/env configuration
+env:
+  - name: PORT
+    value: "8090"
+
+# Exposed endpoints for this component
+endpoints:
+  - name: token-hook
+    displayName: Token Hook
+    type: REST
+    networkVisibility: Public
+    context: /
+    port: 8090
+
+# If you build with a Dockerfile, uncomment below and add a Dockerfile
+# build:
+#   dockerfile: Dockerfile
+
