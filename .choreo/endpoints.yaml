@@ -1,0 +1,9 @@
+version: 0.1
+endpoints:
+  - name: token_hook
+    displayName: Token Hook
+    type: REST
+    networkVisibility: Public
+    context: /
+    port: 8090
+    schemaFilePath: docs/openapi.yaml
