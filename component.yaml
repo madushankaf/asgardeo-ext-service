@@ -19,6 +19,7 @@ endpoints:
     networkVisibility: Public
     context: /
     port: 8090
+    schemaFilePath: openapi.yaml
 
 # If you build with a Dockerfile, uncomment below and add a Dockerfile
 # build:
