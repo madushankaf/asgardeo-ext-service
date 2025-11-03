@@ -6,4 +6,4 @@ endpoints:
     networkVisibility: Public
     context: /
     port: 8090
-    schemaFilePath: docs/openapi.yaml
+    schemaFilePath: openapi.yaml
