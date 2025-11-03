@@ -117,3 +117,122 @@ components:
         event:
           $ref: '#/components/schemas/Event'
 
+openapi: 3.0.3
+info:
+  title: Pre-Issue Access Token Extension Service
+  version: 0.1.0
+  description: Minimal OpenAPI spec for the PoC token hook
+servers:
+  - url: http://localhost:{port}
+    variables:
+      port:
+        default: "8090"
+paths:
+  /token:
+    post:
+      summary: Handle PRE_ISSUE_ACCESS_TOKEN action
+      operationId: handlePreIssueAccessToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Request'
+      responses:
+        '200':
+          description: Successful processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+components:
+  schemas:
+    Request:
+      type: object
+      required:
+        - actionType
+        - event
+      properties:
+        actionType:
+          type: string
+          enum: [PRE_ISSUE_ACCESS_TOKEN]
+        event:
+          $ref: '#/components/schemas/Event'
+        allowedOperations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Operation'
+    Event:
+      type: object
+      required:
+        - request
+        - accessToken
+      properties:
+        request:
+          $ref: '#/components/schemas/RequestData'
+        accessToken:
+          $ref: '#/components/schemas/AccessToken'
+        refreshToken:
+          $ref: '#/components/schemas/RefreshToken'
+          nullable: true
+    RequestData:
+      type: object
+      required:
+        - clientId
+        - grantType
+      properties:
+        clientId:
+          type: string
+        grantType:
+          type: string
+    AccessToken:
+      type: object
+      properties:
+        scopes:
+          type: array
+          items:
+            type: string
+        claims:
+          type: array
+          items:
+            $ref: '#/components/schemas/Claim'
+    RefreshToken:
+      type: object
+      properties:
+        claims:
+          type: array
+          items:
+            $ref: '#/components/schemas/Claim'
+    Claim:
+      type: object
+      required:
+        - name
+        - value
+      properties:
+        name:
+          type: string
+        value:
+          oneOf:
+            - type: string
+            - type: number
+            - type: integer
+            - type: boolean
+            - type: array
+              items:
+                type: string
+    Operation:
+      type: object
+      properties:
+        op:
+          type: string
+          enum: [add, remove, replace]
+        paths:
+          type: array
+          items:
+            type: string
+    Response:
+      type: object
+      properties:
+        event:
+          $ref: '#/components/schemas/Event'
+
