@@ -92,7 +92,7 @@ func main() {
 		port = "8090"
 	}
 
-	http.HandleFunc("/token", handler)
+	http.HandleFunc("/token-validation", handler)
 	log.Printf("Extension service listening on port %s...", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 }

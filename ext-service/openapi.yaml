@@ -9,7 +9,7 @@ servers:
       port:
         default: "8090"
 paths:
-  /token:
+  /token-validation:
     post:
       summary: Handle PRE_ISSUE_ACCESS_TOKEN action
       operationId: handlePreIssueAccessToken
