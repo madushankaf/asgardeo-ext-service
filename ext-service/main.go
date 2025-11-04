@@ -86,6 +86,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// healthHandler provides a health check endpoint for Envoy gateway
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
+}
+
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -93,6 +103,12 @@ func main() {
 	}
 
 	http.HandleFunc("/token-validation", handler)
-	log.Printf("Extension service listening on port %s...", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
+	// Health check endpoint for Envoy readiness probes
+	http.HandleFunc("/health", healthHandler)
+	http.HandleFunc("/healthz", healthHandler)
+	
+	// Explicitly bind to 0.0.0.0 to ensure Envoy can connect
+	addr := fmt.Sprintf("0.0.0.0:%s", port)
+	log.Printf("Extension service listening on %s...", addr)
+	log.Fatal(http.ListenAndServe(addr, nil))
 }
