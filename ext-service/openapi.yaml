@@ -113,6 +113,40 @@ components:
             type: string
     Response:
       type: object
+      required:
+        - actionStatus
       properties:
-        event:
-          $ref: '#/components/schemas/Event'
+        actionStatus:
+          type: string
+          enum: [SUCCESS, FAILED, ERROR]
+        operations:
+          type: array
+          items:
+            $ref: '#/components/schemas/OperationResponse'
+        failureReason:
+          type: string
+        failureDescription:
+          type: string
+        errorMessage:
+          type: string
+        errorDescription:
+          type: string
+    OperationResponse:
+      type: object
+      required:
+        - op
+        - path
+      properties:
+        op:
+          type: string
+          enum: [add, remove, replace]
+        path:
+          type: string
+        value:
+          oneOf:
+            - type: object
+            - type: string
+            - type: number
+            - type: integer
+            - type: boolean
+            - type: array

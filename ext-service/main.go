@@ -53,7 +53,19 @@ type Operation struct {
 
 // Response represents the response to Asgardeo
 type Response struct {
-	Event Event `json:"event,omitempty"`
+	ActionStatus        string             `json:"actionStatus"`
+	Operations          []OperationResponse `json:"operations,omitempty"`
+	FailureReason      string             `json:"failureReason,omitempty"`
+	FailureDescription string             `json:"failureDescription,omitempty"`
+	ErrorMessage       string             `json:"errorMessage,omitempty"`
+	ErrorDescription   string             `json:"errorDescription,omitempty"`
+}
+
+// OperationResponse represents an operation in the response
+type OperationResponse struct {
+	Op    string      `json:"op"`
+	Path  string      `json:"path"`
+	Value interface{} `json:"value,omitempty"`
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -72,13 +84,25 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	// Log minimal info
 	log.Printf("Processing %s for client: %s", req.ActionType, req.Event.Request.ClientID)
 
-	// For PoC: Just return success with the same event
-	// In production, you'd modify claims/scopes here
+	// Return success response with actionStatus
+	// For PoC: Return SUCCESS status
+	// In production, you'd add operations here to modify claims/scopes
 	resp := Response{
-		Event: req.Event,
+		ActionStatus: "SUCCESS",
+		// Operations can be added here if needed to modify the token
+		// Example: Operations: []OperationResponse{
+		//   {
+		//     Op:   "add",
+		//     Path: "/accessToken/claims/-",
+		//     Value: Claim{
+		//       Name:  "customClaim",
+		//       Value: "customValue",
+		//     },
+		//   },
+		// },
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		log.Printf("Error encoding response: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
