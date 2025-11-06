@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -18,9 +19,16 @@ type Request struct {
 
 // Event contains the event data
 type Event struct {
-	Request      RequestData   `json:"request"`
-	AccessToken  AccessToken   `json:"accessToken"`
-	RefreshToken *RefreshToken `json:"refreshToken,omitempty"`
+	Request          RequestData   `json:"request"`
+	AccessToken      AccessToken   `json:"accessToken"`
+	RefreshToken     *RefreshToken `json:"refreshToken,omitempty"`
+	AdditionalHeaders []Header     `json:"additionalHeaders,omitempty"`
+}
+
+// Header represents a header in additionalHeaders
+type Header struct {
+	Name  string   `json:"name"`
+	Value []string `json:"value"`
 }
 
 // RequestData minimal request info
@@ -95,6 +103,36 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Log full request details
+	log.Printf("=== Full Request Details ===")
+	log.Printf("Method: %s", r.Method)
+	log.Printf("URL: %s", r.URL.String())
+	log.Printf("Protocol: %s", r.Proto)
+	log.Printf("Remote Address: %s", r.RemoteAddr)
+	
+	// Log all headers
+	log.Printf("Headers:")
+	for name, values := range r.Header {
+		for _, value := range values {
+			log.Printf("  %s: %s", name, value)
+		}
+	}
+
+	// Read and log body
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("Error reading request body: %v", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+	
+	// Log body as string
+	log.Printf("Body: %s", string(bodyBytes))
+	log.Printf("=== End Request Details ===")
+
+	// Restore body for decoding
+	r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+
 	var req Request
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.Printf("Error decoding request: %v", err)
@@ -102,13 +140,21 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Log minimal info
+	// Log parsed request info
 	log.Printf("Processing %s for client: %s", req.ActionType, req.Event.Request.ClientID)
+	
+	// Log AdditionalHeaders if present
+	if len(req.Event.AdditionalHeaders) > 0 {
+		log.Printf("AdditionalHeaders:")
+		for _, h := range req.Event.AdditionalHeaders {
+			log.Printf("  %s: %v", h.Name, h.Value)
+		}
+	}
 
-	// Get the partner ID from header
-	partnerID := r.Header.Get("x-b2b-usp-partner")
+	// Get the partner ID from event.AdditionalHeaders
+	partnerID := getHeaderValue(req.Event.AdditionalHeaders, "x-b2b-usp-partner")
 	if partnerID == "" {
-		log.Printf("Warning: x-b2b-usp-partner header not found")
+		log.Printf("Warning: x-b2b-usp-partner header not found in AdditionalHeaders")
 		resp := Response{
 			ActionStatus: "SUCCESS",
 		}
@@ -120,7 +166,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Partner ID from header: %s", partnerID)
+	log.Printf("Partner ID from AdditionalHeaders: %s", partnerID)
 
 	// Load entitlements.json
 	entitlementsData, err := loadEntitlements()
@@ -156,6 +202,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+}
+
+// getHeaderValue extracts the first value of a header from AdditionalHeaders array
+func getHeaderValue(headers []Header, headerName string) string {
+	for _, header := range headers {
+		if header.Name == headerName && len(header.Value) > 0 {
+			return header.Value[0] // Return the first value
+		}
+	}
+	return ""
 }
 
 // loadEntitlements loads and parses the entitlements.json file
