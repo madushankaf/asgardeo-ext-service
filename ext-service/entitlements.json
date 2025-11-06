@@ -1,0 +1,75 @@
+{
+    "partners": [
+      { "partnerId": "org_acme", "name": "Acme Pharma LLC", "type": "pharma" },
+      { "partnerId": "org_regx", "name": "RegX Authority", "type": "regulator" }
+    ],
+  
+    "resources": [
+      { "resourceId": "monograph:USP-12345", "type": "Monograph", "metadata": { "edition": "USP-NF 2026", "status": "published", "embargo": false } },
+      { "resourceId": "rs:CA-456", "type": "ReferenceStandard", "metadata": { "lot": "L-2025-09", "status": "active" } },
+      { "resourceId": "draft:CH-789", "type": "Draft", "metadata": { "topic": "Chromatography", "status": "in_review", "embargo": true } },
+      { "resourceId": "edition:USP-NF-2026", "type": "Edition", "metadata": { "effectiveDate": "2026-01-01" } },
+      { "resourceId": "dataset:DS-001", "type": "Dataset", "metadata": { "domain": "HPLC", "pII": false } }
+    ],
+  
+    "relationships": [
+      { "subject": { "type": "partner", "id": "org_acme" }, "relation": "member_of", "object": { "type": "group", "id": "pharma_clients" } },
+      { "subject": { "type": "partner", "id": "org_regx" }, "relation": "regulator_for", "object": { "type": "edition", "id": "edition:USP-NF-2026" } }
+    ],
+  
+    "entitlements": [
+      {
+        "entitlementId": "ent_read_monographs",
+        "subject": { "type": "partner", "id": "org_acme" },
+        "action": "read_full",
+        "object": { "type": "Monograph", "id": "*" },
+        "constraints": {
+          "edition": ["USP-NF 2026"],
+          "embargo": false,
+          "features": { "download": true }
+        }
+      },
+      {
+        "entitlementId": "ent_order_rs",
+        "subject": { "type": "partner", "id": "org_acme" },
+        "action": "order",
+        "object": { "type": "ReferenceStandard", "id": "*" },
+        "constraints": {
+          "maxOrderValueUSD": 25000,
+          "approverRequired": true
+        }
+      },
+      {
+        "entitlementId": "ent_view_lot_docs",
+        "subject": { "type": "partner", "id": "org_acme" },
+        "action": "view_lot_documents",
+        "object": { "type": "ReferenceStandard", "id": "rs:CA-456" },
+        "constraints": { "docs": ["COA", "SDS"] }
+      },
+      {
+        "entitlementId": "ent_regulator_embargo",
+        "subject": { "type": "partner", "id": "org_regx" },
+        "action": "read_full",
+        "object": { "type": "Draft", "id": "*" },
+        "constraints": {
+          "embargo": true,
+          "exportControl": ["US","EU"]
+        }
+      },
+      {
+        "entitlementId": "ent_annotate",
+        "subject": { "type": "partner_group", "id": "pharma_clients" },
+        "action": "annotate",
+        "object": { "type": "Monograph", "id": "*" },
+        "constraints": { "visibility": "org_private" }
+      },
+      {
+        "entitlementId": "ent_propose_change",
+        "subject": { "type": "partner", "id": "org_acme" },
+        "action": "propose_change",
+        "object": { "type": "Draft", "id": "draft:CH-789" },
+        "constraints": { "commentLimitPerDay": 200 }
+      }
+    ]
+  }
+  

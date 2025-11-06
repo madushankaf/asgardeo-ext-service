@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -68,6 +69,26 @@ type OperationResponse struct {
 	Value interface{} `json:"value,omitempty"`
 }
 
+// EntitlementsData represents the structure of entitlements.json
+type EntitlementsData struct {
+	Entitlements []Entitlement `json:"entitlements"`
+}
+
+// Entitlement represents a single entitlement
+type Entitlement struct {
+	EntitlementID string                 `json:"entitlementId"`
+	Subject       Subject                 `json:"subject"`
+	Action        string                  `json:"action"`
+	Object        map[string]interface{} `json:"object"`
+	Constraints   map[string]interface{} `json:"constraints"`
+}
+
+// Subject represents the subject in an entitlement
+type Subject struct {
+	Type string `json:"type"`
+	ID   string `json:"id"`
+}
+
 func handler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -84,16 +105,49 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	// Log minimal info
 	log.Printf("Processing %s for client: %s", req.ActionType, req.Event.Request.ClientID)
 
+	// Get the partner ID from header
+	partnerID := r.Header.Get("x-b2b-usp-partner")
+	if partnerID == "" {
+		log.Printf("Warning: x-b2b-usp-partner header not found")
+		resp := Response{
+			ActionStatus: "SUCCESS",
+		}
+		w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			log.Printf("Error encoding response: %v", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	log.Printf("Partner ID from header: %s", partnerID)
+
+	// Load entitlements.json
+	entitlementsData, err := loadEntitlements()
+	if err != nil {
+		log.Printf("Error loading entitlements: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Find matching entitlements and create scopes
+	var operations []OperationResponse
+	for _, entitlement := range entitlementsData.Entitlements {
+		if entitlement.Subject.Type == "partner" && entitlement.Subject.ID == partnerID {
+			scope := fmt.Sprintf("%s:%s", entitlement.Subject.Type, entitlement.Action)
+			operations = append(operations, OperationResponse{
+				Op:   "add",
+				Path: "/accessToken/scopes/-",
+				Value: scope,
+			})
+			log.Printf("Added scope: %s for partner %s", scope, partnerID)
+		}
+	}
+
 	// Return success response with actionStatus and operations
 	resp := Response{
 		ActionStatus: "SUCCESS",
-		Operations: []OperationResponse{
-			{
-				Op:   "add",
-				Path: "/accessToken/scopes/-",
-				Value: "entitlement1",
-			},
-		},
+		Operations:  operations,
 	}
 
 	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
@@ -102,6 +156,21 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+}
+
+// loadEntitlements loads and parses the entitlements.json file
+func loadEntitlements() (*EntitlementsData, error) {
+	data, err := ioutil.ReadFile("entitlements.json")
+	if err != nil {
+		return nil, fmt.Errorf("failed to read entitlements.json: %w", err)
+	}
+
+	var entitlementsData EntitlementsData
+	if err := json.Unmarshal(data, &entitlementsData); err != nil {
+		return nil, fmt.Errorf("failed to parse entitlements.json: %w", err)
+	}
+
+	return &entitlementsData, nil
 }
 
 // healthHandler provides a health check endpoint for Envoy gateway
