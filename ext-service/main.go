@@ -84,22 +84,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	// Log minimal info
 	log.Printf("Processing %s for client: %s", req.ActionType, req.Event.Request.ClientID)
 
-	// Return success response with actionStatus
-	// For PoC: Return SUCCESS status
-	// In production, you'd add operations here to modify claims/scopes
+	// Return success response with actionStatus and operations
 	resp := Response{
 		ActionStatus: "SUCCESS",
-		// Operations can be added here if needed to modify the token
-		// Example: Operations: []OperationResponse{
-		//   {
-		//     Op:   "add",
-		//     Path: "/accessToken/claims/-",
-		//     Value: Claim{
-		//       Name:  "customClaim",
-		//       Value: "customValue",
-		//     },
-		//   },
-		// },
+		Operations: []OperationResponse{
+			{
+				Op:   "add",
+				Path: "/accessToken/scopes/-",
+				Value: "entitlement1",
+			},
+		},
 	}
 
 	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
