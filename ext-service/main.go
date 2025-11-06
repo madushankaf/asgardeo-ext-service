@@ -19,10 +19,9 @@ type Request struct {
 
 // Event contains the event data
 type Event struct {
-	Request          RequestData   `json:"request"`
-	AccessToken      AccessToken   `json:"accessToken"`
-	RefreshToken     *RefreshToken `json:"refreshToken,omitempty"`
-	AdditionalHeaders []Header     `json:"additionalHeaders,omitempty"`
+	Request      RequestData   `json:"request"`
+	AccessToken  AccessToken   `json:"accessToken"`
+	RefreshToken *RefreshToken `json:"refreshToken,omitempty"`
 }
 
 // Header represents a header in additionalHeaders
@@ -33,8 +32,9 @@ type Header struct {
 
 // RequestData minimal request info
 type RequestData struct {
-	ClientID  string `json:"clientId"`
-	GrantType string `json:"grantType"`
+	ClientID          string   `json:"clientId"`
+	GrantType         string   `json:"grantType"`
+	AdditionalHeaders []Header `json:"additionalHeaders,omitempty"`
 }
 
 // AccessToken token info
@@ -144,15 +144,15 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Processing %s for client: %s", req.ActionType, req.Event.Request.ClientID)
 	
 	// Log AdditionalHeaders if present
-	if len(req.Event.AdditionalHeaders) > 0 {
+	if len(req.Event.Request.AdditionalHeaders) > 0 {
 		log.Printf("AdditionalHeaders:")
-		for _, h := range req.Event.AdditionalHeaders {
+		for _, h := range req.Event.Request.AdditionalHeaders {
 			log.Printf("  %s: %v", h.Name, h.Value)
 		}
 	}
 
-	// Get the partner ID from event.AdditionalHeaders
-	partnerID := getHeaderValue(req.Event.AdditionalHeaders, "x-b2b-usp-partner")
+	// Get the partner ID from event.request.additionalHeaders
+	partnerID := getHeaderValue(req.Event.Request.AdditionalHeaders, "x-b2b-usp-partner")
 	if partnerID == "" {
 		log.Printf("Warning: x-b2b-usp-partner header not found in AdditionalHeaders")
 		resp := Response{
