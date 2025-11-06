@@ -18,135 +18,138 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Request'
+              type: object
       responses:
         '200':
           description: Successful processing
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Response'
-components:
-  schemas:
-    Request:
-      type: object
-      required:
-        - actionType
-        - event
-      properties:
-        actionType:
-          type: string
-          enum: [PRE_ISSUE_ACCESS_TOKEN]
-        event:
-          $ref: '#/components/schemas/Event'
-        allowedOperations:
-          type: array
-          items:
-            $ref: '#/components/schemas/Operation'
-    Event:
-      type: object
-      required:
-        - request
-        - accessToken
-      properties:
-        request:
-          $ref: '#/components/schemas/RequestData'
-        accessToken:
-          $ref: '#/components/schemas/AccessToken'
-        refreshToken:
-          $ref: '#/components/schemas/RefreshToken'
-          nullable: true
-    RequestData:
-      type: object
-      required:
-        - clientId
-        - grantType
-      properties:
-        clientId:
-          type: string
-        grantType:
-          type: string
-    AccessToken:
-      type: object
-      properties:
-        scopes:
-          type: array
-          items:
-            type: string
-        claims:
-          type: array
-          items:
-            $ref: '#/components/schemas/Claim'
-    RefreshToken:
-      type: object
-      properties:
-        claims:
-          type: array
-          items:
-            $ref: '#/components/schemas/Claim'
-    Claim:
-      type: object
-      required:
-        - name
-        - value
-      properties:
-        name:
-          type: string
-        value:
-          oneOf:
-            - type: string
-            - type: number
-            - type: integer
-            - type: boolean
-            - type: array
-              items:
-                type: string
-    Operation:
-      type: object
-      properties:
-        op:
-          type: string
-          enum: [add, remove, replace]
-        paths:
-          type: array
-          items:
-            type: string
-    Response:
-      type: object
-      required:
-        - actionStatus
-      properties:
-        actionStatus:
-          type: string
-          enum: [SUCCESS, FAILED, ERROR]
-        operations:
-          type: array
-          items:
-            $ref: '#/components/schemas/OperationResponse'
-        failureReason:
-          type: string
-        failureDescription:
-          type: string
-        errorMessage:
-          type: string
-        errorDescription:
-          type: string
-    OperationResponse:
-      type: object
-      required:
-        - op
-        - path
-      properties:
-        op:
-          type: string
-          enum: [add, remove, replace]
-        path:
-          type: string
-        value:
-          oneOf:
-            - type: object
-            - type: string
-            - type: number
-            - type: integer
-            - type: boolean
-            - type: array
+                type: object
+                properties:
+                  actionStatus:
+                    type: string
+# components:
+#   schemas:
+#     Request:
+#       type: object
+#       required:
+#         - actionType
+#         - event
+#       properties:
+#         actionType:
+#           type: string
+#           enum: [PRE_ISSUE_ACCESS_TOKEN]
+#         event:
+#           $ref: '#/components/schemas/Event'
+#         allowedOperations:
+#           type: array
+#           items:
+#             $ref: '#/components/schemas/Operation'
+#     Event:
+#       type: object
+#       required:
+#         - request
+#         - accessToken
+#       properties:
+#         request:
+#           $ref: '#/components/schemas/RequestData'
+#         accessToken:
+#           $ref: '#/components/schemas/AccessToken'
+#         refreshToken:
+#           $ref: '#/components/schemas/RefreshToken'
+#           nullable: true
+#     RequestData:
+#       type: object
+#       required:
+#         - clientId
+#         - grantType
+#       properties:
+#         clientId:
+#           type: string
+#         grantType:
+#           type: string
+#     AccessToken:
+#       type: object
+#       properties:
+#         scopes:
+#           type: array
+#           items:
+#             type: string
+#         claims:
+#           type: array
+#           items:
+#             $ref: '#/components/schemas/Claim'
+#     RefreshToken:
+#       type: object
+#       properties:
+#         claims:
+#           type: array
+#           items:
+#             $ref: '#/components/schemas/Claim'
+#     Claim:
+#       type: object
+#       required:
+#         - name
+#         - value
+#       properties:
+#         name:
+#           type: string
+#         value:
+#           oneOf:
+#             - type: string
+#             - type: number
+#             - type: integer
+#             - type: boolean
+#             - type: array
+#               items:
+#                 type: string
+#     Operation:
+#       type: object
+#       properties:
+#         op:
+#           type: string
+#           enum: [add, remove, replace]
+#         paths:
+#           type: array
+#           items:
+#             type: string
+#     Response:
+#       type: object
+#       required:
+#         - actionStatus
+#       properties:
+#         actionStatus:
+#           type: string
+#           enum: [SUCCESS, FAILED, ERROR]
+#         operations:
+#           type: array
+#           items:
+#             $ref: '#/components/schemas/OperationResponse'
+#         failureReason:
+#           type: string
+#         failureDescription:
+#           type: string
+#         errorMessage:
+#           type: string
+#         errorDescription:
+#           type: string
+#     OperationResponse:
+#       type: object
+#       required:
+#         - op
+#         - path
+#       properties:
+#         op:
+#           type: string
+#           enum: [add, remove, replace]
+#         path:
+#           type: string
+#         value:
+#           oneOf:
+#             - type: object
+#             - type: string
+#             - type: number
+#             - type: integer
+#             - type: boolean
+#             - type: array
